@@ -2,3 +2,12 @@ target/
 *.class
 .idea/
 .vscode/
+
+# Credenciais e configuracoes locais nunca devem ser versionadas
+config/application.properties
+*.env
+
+# Arquivos do Eclipse
+.classpath
+.project
+.settings/
