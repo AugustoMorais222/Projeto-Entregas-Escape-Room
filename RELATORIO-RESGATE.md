@@ -62,10 +62,30 @@ Evidência (`git diff v1.0.0-funcional -- .../EntregaService.java`):
 +        repository.gravar(mercadoria);
 ```
 
+Comandos executados para resolver:
+
+```bash
+git diff v1.0.0-funcional -- src/main/java/br/edu/entregas/service/EntregaService.java
+git restore --source=v1.0.0-funcional -- src/main/java/br/edu/entregas/service/EntregaService.java
+```
+
+Commit resultante: `ad06669`. A compilação só voltou a passar depois da Porta 2, que devolve o `Validador`.
+
 ### Porta 2: arquivo excluído
 - Arquivo: `src/main/java/br/edu/entregas/util/Validador.java`.
 - Commit da exclusão: `64f88f6`, autor Igor Reis <igor@entregas.local>, 03/09/2026, "refactor: remover classe aparentemente sem uso".
 - Recuperado do commit pai (`64f88f6~1`) com `git restore --source`.
+
+
+Comandos executados para resolver:
+
+```bash
+git log --diff-filter=D --summary
+git show 64f88f6~1:src/main/java/br/edu/entregas/util/Validador.java
+git restore --source=64f88f6~1 -- src/main/java/br/edu/entregas/util/Validador.java
+```
+
+Commit resultante: `4b4d6b7`.
 
 ### Porta 3: erro lógico no login
 - Commit `9a6d3b0` (Felipe Rocha, "fix: liberar login para homologacao"), também apontado pela branch `teste-login-descartavel`.
@@ -78,9 +98,30 @@ Evidência (`git diff v1.0.0-funcional -- .../EntregaService.java`):
 - Com `||`, bastava o usuário ser `admin` para entrar com qualquer senha. Além disso, `senha == SENHA` compara referências de `String`, e não o conteúdo.
 - A branch `hotfix-login` (`a6f356d`, Eva Martins) confirma a regra correta em `NOTA-HOTFIX.txt`: usar `equals` e exigir usuário e senha corretos.
 
+
+Comandos executados para resolver:
+
+```bash
+git diff v1.0.0-funcional -- src/main/java/br/edu/entregas/service/LoginService.java
+git diff v1.0.0-funcional hotfix-login
+git restore --source=v1.0.0-funcional -- src/main/java/br/edu/entregas/service/LoginService.java
+```
+
+Commit resultante: `c518f86`.
+
 ### Porta 4: README prejudicado
 - Commit `0cd80f6` (Gustavo Melo, "docs: simplificar readme") reduziu o README a "Pergunte ao desenvolvedor como executar" (1 linha inserida, 18 removidas).
 - A versão mais completa está na branch `docs-readme` (`7fe8faa`, Carla Souza), que contém o README original mais a seção de fluxo de contribuição. Foi recuperada do histórico, sem reescrita.
+
+
+Comandos executados para resolver:
+
+```bash
+git log --all -- README.md
+git restore --source=docs-readme -- README.md
+```
+
+Commit resultante: `55f2bd9`.
 
 ### Porta 5: informação sensível versionada
 - Arquivo: `config/application.properties`, contendo `db.user`, `db.password` e `api.token`.
@@ -88,29 +129,17 @@ Evidência (`git diff v1.0.0-funcional -- .../EntregaService.java`):
 - Ação: arquivo removido da versão atual com `git rm` e incluído no `.gitignore`.
 - **Risco remanescente:** apagar o arquivo cria apenas um novo commit sem ele. O commit `6572d8a` continua no histórico e qualquer pessoa com acesso ao repositório recupera o conteúdo com `git show commit-perigoso` ou `git show 6572d8a:config/application.properties`. Por isso a senha do banco e o token devem ser considerados comprometidos e **trocados**. Eliminar o segredo do histórico exigiria reescrevê-lo (`git filter-repo` ou BFG) e forçar o push, o que altera os hashes de todos os commits seguintes; não fizemos isso porque a atividade pede a preservação das evidências.
 
-## Comandos Git utilizados
 
-| Comando | Finalidade |
-| --- | --- |
-| `git status` | Conferir a branch ativa e alterações pendentes antes de começar. |
-| `git branch -a -vv` | Listar as branches e o commit para onde cada uma aponta. |
-| `git tag -n` | Listar as tags e suas mensagens. |
-| `git switch -c resgate/equipe-2` | Criar a branch de resgate, sem trabalhar na `main`. |
-| `git log --oneline --all --graph --decorate` | Visualizar o grafo completo de commits, branches e tags. |
-| `git log --stat` | Ver quais arquivos cada commit alterou. |
-| `git log --diff-filter=D --summary` | Localizar commits que excluíram arquivos. |
-| `git log --all -- README.md` | Ver todos os commits, em qualquer branch, que mexeram no README. |
-| `git diff v1.0.0-funcional -- <arquivo>` | Comparar a versão atual com a versão funcional (EntregaService e LoginService). |
-| `git diff v1.0.0-funcional hotfix-login` | Ver o que a branch de hotfix trazia. |
-| `git show 64f88f6~1:src/main/java/br/edu/entregas/util/Validador.java` | Ler o arquivo excluído como era antes da exclusão. |
-| `git show commit-perigoso` | Inspecionar o commit que versionou as credenciais. |
-| `git restore --source=v1.0.0-funcional -- <arquivo>` | Restaurar `EntregaService.java` e `LoginService.java` da versão funcional. |
-| `git restore --source=64f88f6~1 -- src/main/java/br/edu/entregas/util/Validador.java` | Recuperar o arquivo excluído a partir do commit anterior à exclusão. |
-| `git restore --source=docs-readme -- README.md` | Recuperar o README da branch de documentação. |
-| `git rm config/application.properties` | Remover o arquivo de credenciais da versão atual. |
-| `git check-ignore -v config/application.properties` | Confirmar que o `.gitignore` passou a bloquear o arquivo. |
-| `git grep -n "SuperSenha123" HEAD` | Confirmar que o segredo não está mais na versão atual. |
-| `git switch main` e `git merge --no-ff resgate/equipe-2 -m "merge: integrar resgate do projeto"` | Integrar o resgate na `main` preservando o histórico com um commit de merge. |
+Comandos executados para resolver:
+
+```bash
+git show commit-perigoso
+git rm config/application.properties
+git check-ignore -v config/application.properties
+git grep -n "SuperSenha123" HEAD
+```
+
+Commit resultante: `38020d9` (inclui a regra nova no `.gitignore`).
 
 ## Commits relevantes
 
